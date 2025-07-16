@@ -24,19 +24,12 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "ClickHouse"
+        "uid": "PDEE91DDB90597936"
       },
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "inspect": false
+            "mode": "continuous-GrYlRd"
           },
           "mappings": [],
           "thresholds": {
@@ -50,7 +43,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "short"
         },
         "overrides": []
       },
@@ -60,33 +54,52 @@
         "x": 0,
         "y": 0
       },
-      "id": 4,
+      "id": 6,
       "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
+        "displayMode": "lcd",
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
         },
-        "showHeader": true
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [],
+          "fields": "",
+          "values": true
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
       },
       "pluginVersion": "12.0.2",
       "targets": [
         {
-          "datasource": {
-            "type": "grafana-clickhouse-datasource",
-            "uid": "ClickHouse"
+          "editorType": "sql",
+          "format": 1,
+          "meta": {
+            "builderOptions": {
+              "columns": [],
+              "database": "",
+              "limit": 1000,
+              "mode": "list",
+              "queryType": "table",
+              "table": ""
+            }
           },
-          "queryType": "",
-          "rawSql": "SELECT url, count() as requests FROM otel.nginx_access_logs WHERE Timestamp >= now() - INTERVAL 1 HOUR GROUP BY url ORDER BY requests DESC LIMIT 10",
+          "pluginVersion": "4.10.1",
+          "queryType": "table",
+          "rawSql": "SELECT LogLevel, count() as requests FROM otel.logs_query_builder WHERE Timestamp >= now() - INTERVAL 1 HOUR GROUP BY LogLevel ORDER BY requests DESC",
           "refId": "A"
         }
       ],
-      "title": "Top URLs",
-      "type": "table"
+      "title": "New panel",
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -269,6 +282,73 @@
         "x": 0,
         "y": 16
       },
+      "id": 4,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "12.0.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "ClickHouse"
+          },
+          "queryType": "",
+          "rawSql": "SELECT url, count() as requests FROM otel.nginx_access_logs WHERE Timestamp >= now() - INTERVAL 1 HOUR GROUP BY url ORDER BY requests DESC LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "title": "Top URLs",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "ClickHouse"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
       "id": 5,
       "options": {
         "cellHeight": "sm",
@@ -299,7 +379,7 @@
     }
   ],
   "preload": false,
-  "refresh": "5s",
+  "refresh": "10s",
   "schemaVersion": 41,
   "tags": [
     "nginx",
@@ -310,12 +390,12 @@
     "list": []
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Nginx Access Logs",
   "uid": "nginx-access-logs",
-  "version": 3
+  "version": 5
 }

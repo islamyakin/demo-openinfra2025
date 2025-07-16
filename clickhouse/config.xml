@@ -1,4 +1,5 @@
 <clickhouse>
+  <timezone>Asia/Jakarta</timezone>
   <logger>
     <level>error</level>
     <log>/var/log/clickhouse-server/clickhouse.log</log>
