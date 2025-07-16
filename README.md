@@ -89,6 +89,7 @@ WHERE Service = 'inventory'
 AND Component = 'ingress'
 AND Environment = 'production'
 LIMIT 12;
+```
 
 
 ### OpenTelemetry Health Check
@@ -144,7 +145,7 @@ The OpenTelemetry Collector is configured to:
   - **ERROR**: 4xx and 5xx status codes
   - **WARN**: 3xx status codes  
   - **INFO**: 1xx and 2xx status codes
-- Add service labels: nginx, ingress, production
+- Add service labels: inventory, ingress, production
 
 ### ClickHouse Schema
 - **Retention**: 30 days TTL
