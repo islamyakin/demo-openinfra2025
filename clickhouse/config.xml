@@ -1,0 +1,23 @@
+<clickhouse>
+  <logger>
+    <level>error</level>
+    <log>/var/log/clickhouse-server/clickhouse.log</log>
+  </logger>
+
+  <network>
+    <listen_host>::</listen_host>
+    <tcp_port>9000</tcp_port>
+    <http_port>8123</http_port>
+  </network>
+
+  <users>
+    <default>
+      <password>default</password>
+      <networks>
+        <ip>::/0</ip>
+      </networks>
+      <profile>default</profile>
+      <quota>default</quota>
+    </default>  
+  </users>
+</clickhouse>

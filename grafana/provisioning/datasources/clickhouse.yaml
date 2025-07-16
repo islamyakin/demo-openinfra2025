@@ -1,0 +1,27 @@
+apiVersion: 1
+
+datasources:
+  - name: ClickHouse
+    type: grafana-clickhouse-datasource
+    access: proxy
+    url: http://clickhouse:8123
+    database: otel
+    user: otel
+    secureJsonData:
+      password: otel123
+    jsonData:
+      defaultDatabase: otel
+      port: "8123"
+      host: clickhouse
+      username: otel
+      protocol: http
+      secure: false
+      tlsSkipVerify: true
+      useYandexCloudAuthorization: false
+      maxOpenConns: "10"
+      maxIdleConns: "5"
+      connMaxLifetime: "300"
+      queryTimeout: "60"
+      dialTimeout: "10"
+    isDefault: true
+    editable: true

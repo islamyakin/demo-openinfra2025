@@ -1,0 +1,80 @@
+receivers:
+  filelog:
+    include:
+      - /var/log/nginx/access.log
+    start_at: beginning
+    operators:
+      - type: regex_parser
+        regex: '^(?P<remote_addr>\S+) - (?P<remote_user>\S+) \[(?P<time_local>[^\]]+)\] "(?P<method>\S+) (?P<request_uri>\S+) (?P<http_version>\S+)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"'
+        parse_from: body
+        parse_to: attributes
+      - type: time_parser
+        parse_from: attributes.time_local
+        layout: '%d/%b/%Y:%H:%M:%S %z'
+      - type: add
+        field: attributes.service
+        value: 'inventory'
+      - type: add
+        field: attributes.component
+        value: 'ingress'
+      - type: add
+        field: attributes.environment
+        value: 'production'
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 5000
+  
+  resource:
+    attributes:
+      - key: service.name
+        value: inventory
+        action: upsert
+      - key: service.version
+        value: 1.2.3
+        action: upsert
+      - key: deployment.environment
+        value: production
+        action: upsert
+
+  transform:
+    log_statements:
+      - context: log
+        statements:
+          - set(severity_text, "INFO") where severity_text == nil
+          - set(severity_text, "ERROR") where IsMatch(attributes["status"], "^[45].*")
+          - set(severity_text, "WARN") where IsMatch(attributes["status"], "^3.*")
+          - set(severity_text, "INFO") where IsMatch(attributes["status"], "^[12].*")
+
+exporters:
+  clickhouse:
+    endpoint: tcp://clickhouse:9000?dial_timeout=10s&compress=lz4&async_insert=1
+    logs_table_name: otel_logs
+    create_schema: true
+    timeout: 5s
+    database: otel
+    username: otel
+    password: otel123
+    sending_queue:
+      queue_size: 1000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+
+service:
+  pipelines:
+    logs:
+      receivers: [filelog]
+      processors: [transform, resource, batch]
+      exporters: [clickhouse]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [clickhouse]

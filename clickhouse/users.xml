@@ -1,0 +1,11 @@
+<users>
+  <default>
+    <password>default</password>
+    <profile>default</profile>
+    <quota>default</quota>
+    <access_management>0</access_management>
+    <networks>
+      <ip>::/0</ip>
+    </networks>
+  </default>
+</users>

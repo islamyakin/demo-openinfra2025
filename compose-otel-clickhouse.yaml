@@ -1,0 +1,102 @@
+version: '3.8'
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.6
+    container_name: clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_DB: otel
+      CLICKHOUSE_USER: otel
+      CLICKHOUSE_PASSWORD: otel123
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - otel-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.128.0
+    container_name: otel-collector
+    command: ["--config=/etc/otelcol-contrib/otel-collector.yaml"]
+    volumes:
+      - ./otel/otel-collector.yaml:/etc/otelcol-contrib/otel-collector.yaml
+      - ./logs:/var/log/nginx:ro
+    ports:
+      - "4317:4317"
+      - "13133:13133"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    networks:
+      - otel-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.25
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/html:/usr/share/nginx/html
+      - ./logs:/var/log/nginx
+    networks:
+      - otel-network
+    depends_on:
+      - otel-collector
+
+  grafana:
+    image: grafana/grafana:12.0.2-ubuntu
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=grafana-clickhouse-datasource
+      - GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=grafana-clickhouse-datasource
+      - GF_LOG_LEVEL=info
+      - GF_FEATURE_TOGGLES_ENABLE=accessTokenExpirationCheck
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - otel-network
+    depends_on:
+      - clickhouse
+    restart: unless-stopped
+
+  log-generator:
+    image: curlimages/curl:8.4.0
+    container_name: log-generator
+    command: |
+      sh -c '
+        while true; do
+          curl -s http://nginx/ > /dev/null
+          curl -s http://nginx/api/health > /dev/null
+          curl -s http://nginx/api/users > /dev/null
+          curl -s http://nginx/api/empatratus > /dev/null
+          sleep 5
+        done
+      '
+    depends_on:
+      - nginx
+    networks:
+      - otel-network
+    restart: unless-stopped
+
+volumes:
+  clickhouse_data:
+  grafana_data:
+
+networks:
+  otel-network:
+    driver: bridge
