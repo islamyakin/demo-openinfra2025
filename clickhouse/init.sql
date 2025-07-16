@@ -1,26 +1,28 @@
 CREATE DATABASE IF NOT EXISTS otel;
 
 CREATE TABLE IF NOT EXISTS otel.otel_logs (
-    Timestamp DateTime64(9),
-    TraceId String,
-    SpanId String,
-    TraceFlags UInt32,
-    SeverityText LowCardinality(String),
-    SeverityNumber Int32,
-    ServiceName LowCardinality(String),
-    Body String,
-    ResourceSchemaUrl String,
-    ResourceAttributes Map(LowCardinality(String), String),
-    ScopeSchemaUrl String,
-    ScopeName String,
-    ScopeVersion String,
-    ScopeAttributes Map(LowCardinality(String), String),
-    LogAttributes Map(LowCardinality(String), String)
+    Timestamp DateTime64(9) CODEC(ZSTD(3)),
+    TraceId String CODEC(ZSTD(3)),
+    SpanId String CODEC(ZSTD(3)),
+    TraceFlags UInt32 CODEC(ZSTD(3)),
+    SeverityText LowCardinality(String) CODEC(ZSTD(3)),
+    SeverityNumber Int32 CODEC(ZSTD(3)),
+    ServiceName LowCardinality(String) CODEC(ZSTD(3)),
+    Body String CODEC(ZSTD(3)),
+    ResourceSchemaUrl String CODEC(ZSTD(3)),
+    ResourceAttributes Map(LowCardinality(String), String) CODEC(ZSTD(3)),
+    ScopeSchemaUrl String CODEC(ZSTD(3)),
+    ScopeName String CODEC(ZSTD(3)),
+    ScopeVersion String CODEC(ZSTD(3)),
+    ScopeAttributes Map(LowCardinality(String), String) CODEC(ZSTD(3)),
+    LogAttributes Map(LowCardinality(String), String) CODEC(ZSTD(3))
 ) ENGINE = MergeTree()
 PARTITION BY toDate(Timestamp)
 ORDER BY (ServiceName, SeverityText, Timestamp)
 TTL toDateTime(Timestamp) + INTERVAL 30 DAY
-SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
+SETTINGS index_granularity = 8192, 
+         ttl_only_drop_parts = 1,
+         compress_primary_key = 1;
 
 CREATE VIEW IF NOT EXISTS otel.logs_query_builder AS
 SELECT 
@@ -52,4 +54,4 @@ SELECT
     Body as message,
     SeverityText as log_level
 FROM otel.otel_logs
-WHERE ServiceName = 'edge-services';
+WHERE ServiceName = 'inventory';
