@@ -15,7 +15,9 @@ CREATE TABLE IF NOT EXISTS otel.otel_logs (
     ScopeName String CODEC(ZSTD(3)),
     ScopeVersion String CODEC(ZSTD(3)),
     ScopeAttributes Map(LowCardinality(String), String) CODEC(ZSTD(3)),
-    LogAttributes Map(LowCardinality(String), String) CODEC(ZSTD(3))
+    LogAttributes Map(LowCardinality(String), String) CODEC(ZSTD(3)),
+    INDEX idx_log_attributes_key mapKeys(LogAttributes) TYPE bloom_filter(0.01) GRANULARITY 1,
+    INDEX idx_log_attributes_value mapValues(LogAttributes) TYPE bloom_filter(0.01) GRANULARITY 1
 ) ENGINE = MergeTree()
 PARTITION BY toDate(Timestamp)
 ORDER BY (ServiceName, SeverityText, Timestamp)

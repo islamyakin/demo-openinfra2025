@@ -89,6 +89,18 @@ WHERE Service = 'inventory'
 AND Component = 'ingress'
 AND Environment = 'production'
 LIMIT 12;
+
+-- Analytic Query
+SELECT 
+  toStartOfHour(Timestamp) as hour,
+  LogAttributes['status'] as status,
+  COUNT(*) as requests,
+  uniq(LogAttributes['remote_addr']) as unique_users,
+  avg(toFloat64OrZero(LogAttributes['body_bytes_sent'])) as avg_response_size
+FROM otel_logs 
+WHERE Timestamp > now() - INTERVAL 24 HOUR
+GROUP BY hour, status
+ORDER BY hour DESC;
 ```
 
 

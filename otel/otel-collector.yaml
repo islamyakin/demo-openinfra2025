@@ -74,7 +74,3 @@ service:
       receivers: [filelog]
       processors: [transform, resource, batch]
       exporters: [clickhouse]
-    traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [clickhouse]
